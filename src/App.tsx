@@ -3,7 +3,7 @@ import QuestionCard from './components/QuestionCard'
 import {fetchQuizQuestions} from './API'
 import {QuestionState, Difficulty} from "./API";
 
-type AnswerObject = {
+export type AnswerObject = {
     question: string;
     answer: string;
     correct: boolean;
@@ -20,7 +20,6 @@ function App() {
     const [score, setScore ] = useState(0)
     const [gameOver, setGameOver] = useState(true)
 
-    console.log(fetchQuizQuestions(TOTAL_QUESTIONS, Difficulty.EASY))
 
     const startTrivial = async () => {
         setLoading(true)
@@ -34,14 +33,36 @@ function App() {
         setNumber(0)
         setLoading(false)
     }
-    console.log(questions)
 
     const checkAnswer = (e: React.MouseEvent<HTMLButtonElement>) => {
-
+        if(!gameOver) {
+            // Users answer
+            const answer = e.currentTarget.value
+            // Check answer against correct answer
+            const correct = questions[number].correct_answer === answer
+            // Add score if answer is correct
+            if (correct) setScore(prev => prev + 1)
+            // Save answer in the array for user answers
+            const answerObject = {
+                question: questions[number].question,
+                answer,
+                correct,
+                correctAnswer: questions[number].correct_answer
+            }
+            setUserAnswers(prev => [...prev, answerObject])
+        }
     }
+    console.log(userAnswers)
 
     const nextQuestion = () => {
+        // Move on to the next question if not the last question
+        const nextQuestion = number + 1
 
+        if(nextQuestion === TOTAL_QUESTIONS) {
+            setGameOver(true)
+        } else {
+            setNumber(nextQuestion)
+        }
     }
 
   return (
@@ -58,7 +79,7 @@ function App() {
             </button>
         ) : null}
 
-        {!gameOver ? <p className="score">Score: </p> : null }
+        {!gameOver ? <p className="score">Score: {score} </p> : null }
         {loading ? <p>Loading Questions...</p> : null}
         { !loading && !gameOver && (
         <QuestionCard
@@ -74,7 +95,7 @@ function App() {
                 className="next"
                 onClick={nextQuestion}
             >
-                Next
+                Next Question
             </button>
         ) : null}
     </div>
